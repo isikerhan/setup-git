@@ -1,0 +1,61 @@
+name: "Setup Git"
+description: "Setup a specific version of Git by downloading the source code and installing it from the source."
+author: "Isik Erhan"
+inputs:
+  version:
+    description: "The Git version to install. Example: 2.22.0."
+    required: true
+  cache:
+    description: "Cache the built executables. Default: true."
+    default: "true"
+  verbose:
+    description: "Print verbose output. Default: false."
+    default: "false"
+  installation-id:
+    description: "An identifier for the Git installation. If provided, it will be appended to the cache key. By default, no identifier is used."
+outputs:
+  install-dir:
+    description: "Directory where Git is installed."
+    value: ${{ steps.setup.outputs.install-dir }}
+  cache-hit:
+    description: "Indicates if executables were restored from the cache."
+    value: ${{ steps.cache-executables.outputs.cache-hit == 'true' && true || false }}
+  installation-skipped:
+    description: "Indicates if installation was skipped because the desired Git version is already present."
+    value: ${{ steps.install-git.outputs.installation-skipped == 'true' && true || false }}
+  cache-key:
+    description: "Cache key for storing the executables."
+    value: ${{ steps.setup-cache.outputs.cache-key }}
+runs:
+  using: composite
+  steps:
+    - name: "Setup"
+      id: setup
+      shell: bash
+      run: echo "install-dir=$HOME/local/git/${{ inputs.version }}" >> $GITHUB_OUTPUT
+    - name: "Setup cache"
+      id: setup-cache
+      shell: bash
+      if: inputs.cache == 'true'
+      run: echo "cache-key=${{ inputs.installation-id && format('{0}-', inputs.installation-id) }}${{ runner.os }}-git-v${{ inputs.version }}" >> $GITHUB_OUTPUT
+    - name: "Cache executables"
+      id: cache-executables
+      if: inputs.cache == 'true'
+      uses: actions/cache@v4
+      with:
+        key: ${{ steps.setup-cache.outputs.cache-key }}
+        path: ${{ steps.setup.outputs.install-dir }}
+    - name: "Install Git"
+      id: install-git
+      shell: bash
+      if: runner.os == 'Linux'
+      run: |
+        ${{ github.action_path }}/install-linux.sh
+        echo "$GIT_INSTALL_DIR/bin" >> $GITHUB_PATH
+        cat $OUTPUT_FILE 2>/dev/null >> $GITHUB_OUTPUT
+      working-directory: ${{ runner.temp }}
+      env:
+        GIT_VERSION: ${{ inputs.version }}
+        GIT_INSTALL_DIR: ${{ steps.setup.outputs.install-dir }}
+        VERBOSE: ${{ inputs.verbose }}
+        OUTPUT_FILE: ./.out
