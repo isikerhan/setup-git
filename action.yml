@@ -1,0 +1,35 @@
+name: 'Setup Git'
+description: 'Setup a specific version of Git by downloading the source code and installing it from the source.'
+author: 'Isik Erhan'
+inputs:
+  version:
+    description: 'The Git version to install. Example: 2.22.0'
+    required: true
+  cache:
+    description: 'Whether or not to cache the built executable. Default: true'
+    default: 'true'
+  install-dir:
+    description: 'The directory where the Git executable installed. Default ~/local/git'
+    default: ~/local/git
+  verbose:
+    description: 'Whether or not to print verbose output. Default: false'
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: 'Cache executables'
+      id: cache-executables
+      uses: actions/cache@v4
+      with:
+        key: ${{ runner.os }}-${{ inputs.version }}-${{ inputs.install-dir }}
+        path: ${{ inputs.install-dir }}
+    - name: 'Install Git'
+      id: install-git
+      shell: bash 
+      if: runner.os == 'Linux'
+      run: ${{ github.action_path }}/install-linux.sh && echo "${GIT_INSTALL_DIR/'~'/"$HOME"}/bin" >> $GITHUB_PATH
+      working-directory: ${{ runner.temp }}
+      env:
+        GIT_VERSION: ${{ inputs.version }}
+        GIT_INSTALL_DIR: ${{ inputs.install-dir }}
+        VERBOSE: ${{ inputs.verbose }}
