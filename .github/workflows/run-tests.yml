@@ -1,0 +1,50 @@
+name: Run tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - main
+    tags:
+      - v*
+    paths-ignore:
+      - README.md
+      - LICENSE
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - LICENSE
+
+jobs:
+  tests:
+    name: Tests
+    uses: ./.github/workflows/test.yml
+    with:
+      asserted-cache-hit-status: false
+      cache-key-prefix: ${{ github.run_id }}
+  cache-tests:
+    name: Cache tests
+    needs: tests
+    uses: ./.github/workflows/test.yml
+    with:
+      asserted-cache-hit-status: true
+      cache-key-prefix: ${{ github.run_id }}
+  clear-cache:
+    name: Clear cache
+    needs: [tests, cache-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear cache
+        id: clear-cache
+        shell: bash
+        run: |
+          set +e
+          cache_ids=$(gh cache list --key=${{ github.run_id }} --json id --jq '.[].id')
+          for cache_id in $cache_ids; do
+            gh cache delete $cache_id
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}

@@ -1,0 +1,45 @@
+name: Test "Setup Git"
+
+on:
+  workflow_call:
+    inputs:
+      asserted-cache-hit-status:
+        description: "Determines which cache hit status will be asserted. ('true' for cache hit, 'false' for cache miss, or empty for no assertion)."
+        type: string
+      cache-key-prefix:
+        description: "Prefix for cache key"
+        type: string
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-24.04, ubuntu-22.04, ubuntu-20.04]
+        git-version: ["2.23.0", "2.43.6"]
+    name: "Run tests on ${{ matrix.runs-on }} with Git v${{ matrix.git-version }}"
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Setup Git
+        id: setup-git
+        uses: ./
+        with:
+          version: ${{ matrix.git-version }}
+          verbose: true
+          installation-id: ${{ inputs.cache-key-prefix && format('{0}-', inputs.cache-key-prefix) }}${{ matrix.runs-on }}
+      - name: Assert correct Git version is installed
+        run: |
+          command -v git >/dev/null \
+            || (echo "Assertion failed: Expected Git to be installed, but it wasn't" >&2; exit 1)
+          [ "$(git --version)" == "git version ${{ matrix.git-version }}" ] \
+            || (echo "Assertion failed: Expected version = 'git version ${{ matrix.git-version }}', but got '$(git --version)'." >&2; exit 1)
+      - name: Assert cache hit status
+        if: inputs.asserted-cache-hit-status != ''
+        run: |
+          [ "${{ steps.setup-git.outputs.cache-hit }}" == "${{ inputs.asserted-cache-hit-status }}" ] \
+            || (echo "Assertion failed: Expected cache-hit = '${{ inputs.asserted-cache-hit-status }}', but got '${{ steps.setup-git.outputs.cache-hit }}'." >&2; exit 1)
+          [ "${{ steps.setup-git.outputs.installation-skipped }}" == "${{ inputs.asserted-cache-hit-status }}" ] \
+            || (echo "Assertion failed: Expected installation-skipped = '${{ inputs.asserted-cache-hit-status }}', but got '${{ steps.setup-git.outputs.installation-skipped }}'." >&2; exit 1)
