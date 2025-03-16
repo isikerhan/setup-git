@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runs-on: [ubuntu-24.04, ubuntu-22.04, ubuntu-20.04]
+        runs-on: [ubuntu-24.04, ubuntu-22.04, ubuntu-20.04, macos-15, macos-14, macos-13]
         git-version: ["2.23.0", "2.43.6"]
     name: "Run tests on ${{ matrix.runs-on }} with Git v${{ matrix.git-version }}"
     runs-on: ${{ matrix.runs-on }}
