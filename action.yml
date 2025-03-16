@@ -32,7 +32,14 @@ runs:
     - name: "Setup"
       id: setup
       shell: bash
-      run: echo "install-dir=$HOME/local/git/${{ inputs.version }}" >> $GITHUB_OUTPUT
+      run: |
+        install_script_name="install-$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]').sh"
+        if [ ! -f "${{ github.action_path }}/$install_script_name" ]; then
+          echo "Unsupported runner OS: ${{ runner.os}}" >&2
+          exit 1
+        fi
+        echo "install-script-name=$install_script_name" >> $GITHUB_OUTPUT
+        echo "install-dir=$HOME/local/git/${{ inputs.version }}" >> $GITHUB_OUTPUT
     - name: "Setup cache"
       id: setup-cache
       shell: bash
@@ -48,9 +55,8 @@ runs:
     - name: "Install Git"
       id: install-git
       shell: bash
-      if: runner.os == 'Linux'
       run: |
-        ${{ github.action_path }}/install-linux.sh
+        ${{ github.action_path }}/${{ steps.setup.outputs.install-script-name }}
         echo "$GIT_INSTALL_DIR/bin" >> $GITHUB_PATH
         cat $OUTPUT_FILE 2>/dev/null >> $GITHUB_OUTPUT
       working-directory: ${{ runner.temp }}
