@@ -24,12 +24,16 @@ download_and_extract_source_code() {
   fi
 
   wget "${wget_opts[@]}" https://mirrors.edge.kernel.org/pub/software/scm/git/git-"$GIT_VERSION".tar.gz || return 1
-  tar -xzf git-"$GIT_VERSION".tar.gz >$STDOUT_REDIR 2>&1 && cd git-"$GIT_VERSION" || return 1
+  tar -xzf git-"$GIT_VERSION".tar.gz >$STDOUT_REDIR 2>&1 || return 1
 }
 
 install_git() {
+  cd git-"$GIT_VERSION" >$STDOUT_REDIR 2>&1 || return 1
+
   make prefix="$GIT_INSTALL_DIR" all >$STDOUT_REDIR 2>&1 || return 1
   make prefix="$GIT_INSTALL_DIR" install >$STDOUT_REDIR 2>&1 || return 1
+
+  cd ~- >$STDOUT_REDIR 2>&1
 }
 
 if [ -z "$GIT_VERSION" ]; then
