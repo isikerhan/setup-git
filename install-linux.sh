@@ -13,8 +13,8 @@ fail() {
 }
 
 install_dependencies() {
-  sudo apt-get update >$STDOUT_REDIR 2>&1 || return 1
-  sudo apt-get install wget libz-dev libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext cmake gcc >$STDOUT_REDIR 2>&1 || return 1
+  sudo apt-get update >$STDOUT_REDIR 2>&1 || return 10
+  sudo apt-get install wget libz-dev libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext cmake gcc >$STDOUT_REDIR 2>&1 || return 11
 }
 
 download_and_extract_source_code() {
@@ -23,25 +23,25 @@ download_and_extract_source_code() {
     wget_opts+="-q"
   fi
 
-  wget "${wget_opts[@]}" https://mirrors.edge.kernel.org/pub/software/scm/git/git-"$GIT_VERSION".tar.gz || return 1
-  tar -xzf git-"$GIT_VERSION".tar.gz >$STDOUT_REDIR 2>&1 || return 1
+  wget "${wget_opts[@]}" https://mirrors.edge.kernel.org/pub/software/scm/git/git-"$GIT_VERSION".tar.gz || return 30
+  tar -xzf git-"$GIT_VERSION".tar.gz >$STDOUT_REDIR 2>&1 || return 31
 }
 
 install_git() {
-  cd git-"$GIT_VERSION" >$STDOUT_REDIR 2>&1 || return 1
+  cd git-"$GIT_VERSION" >$STDOUT_REDIR 2>&1 || return 50
 
-  make prefix="$GIT_INSTALL_DIR" all >$STDOUT_REDIR 2>&1 || return 1
-  make prefix="$GIT_INSTALL_DIR" install >$STDOUT_REDIR 2>&1 || return 1
+  make prefix="$GIT_INSTALL_DIR" all >$STDOUT_REDIR 2>&1 || return 51
+  make prefix="$GIT_INSTALL_DIR" install >$STDOUT_REDIR 2>&1 || return 52
 
   cd ~- >$STDOUT_REDIR 2>&1
 }
 
 if [ -z "$GIT_VERSION" ]; then
-  fail "GIT_VERSION is not set."
+  fail "GIT_VERSION is not set." 128
 fi
 
 if [ -z "$GIT_INSTALL_DIR" ]; then
-  fail "GIT_INSTALL_DIR is not set."
+  fail "GIT_INSTALL_DIR is not set." 128
 fi
 
 GIT_EXECUTABLE_DIR="$GIT_INSTALL_DIR/bin"
@@ -63,9 +63,9 @@ else
   STDOUT_REDIR=/dev/null
 fi
 
-install_dependencies || fail "Failed to install dependencies."
-download_and_extract_source_code || fail "Failed to download specified Git version."
-install_git || fail "Failed to install Git."
+install_dependencies || fail "Failed to install dependencies." $?
+download_and_extract_source_code || fail "Failed to download specified Git version." $?
+install_git || fail "Failed to install Git." $?
 
 if [ "$(git --version)" != "git version $GIT_VERSION" ]; then
   fail "Installation failed."
