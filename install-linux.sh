@@ -13,8 +13,8 @@ fail() {
 }
 
 install_dependencies() {
-  sudo apt-get update >$STDOUT_REDIR 2>&1 || return 10
-  sudo apt-get install wget libz-dev libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext cmake gcc >$STDOUT_REDIR 2>&1 || return 11
+  sudo apt-get update >&3 2>&4 || return 10
+  sudo apt-get install wget libz-dev libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext cmake gcc >&3 2>&4 || return 11
 }
 
 download_and_extract_source_code() {
@@ -24,16 +24,16 @@ download_and_extract_source_code() {
   fi
 
   wget "${wget_opts[@]}" https://mirrors.edge.kernel.org/pub/software/scm/git/git-"$GIT_VERSION".tar.gz || return 30
-  tar -xzf git-"$GIT_VERSION".tar.gz >$STDOUT_REDIR 2>&1 || return 31
+  tar -xzf git-"$GIT_VERSION".tar.gz >&3 2>&4 || return 31
 }
 
 install_git() {
-  cd git-"$GIT_VERSION" >$STDOUT_REDIR 2>&1 || return 50
+  cd git-"$GIT_VERSION" >&3 2>&4 || return 50
 
-  make prefix="$GIT_INSTALL_DIR" all >$STDOUT_REDIR 2>&1 || return 51
-  make prefix="$GIT_INSTALL_DIR" install >$STDOUT_REDIR 2>&1 || return 52
+  make prefix="$GIT_INSTALL_DIR" all >&3 2>&4 || return 51
+  make prefix="$GIT_INSTALL_DIR" install >&3 2>&4 || return 52
 
-  cd ~- >$STDOUT_REDIR 2>&1
+  cd ~- >&3 2>&4
 }
 
 if [ -z "$GIT_VERSION" ]; then
@@ -58,9 +58,11 @@ if command -v git >/dev/null 2>&1 && [ "$(git --version)" == "git version $GIT_V
 fi
 
 if [ "$VERBOSE" == "true" ]; then
-  STDOUT_REDIR=/dev/stdout
+  exec 3>&1
+  exec 4>&2
 else
-  STDOUT_REDIR=/dev/null
+  exec 3>/dev/null
+  exec 4>/dev/null
 fi
 
 install_dependencies || fail "Failed to install dependencies." $?
