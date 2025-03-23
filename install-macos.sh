@@ -44,6 +44,10 @@ if [ -z "$GIT_INSTALL_DIR" ]; then
   fail "GIT_INSTALL_DIR is not set." 128
 fi
 
+if [ -z "$OUTPUT_FILE" ]; then
+  fail "OUTPUT_FILE is not set." 128
+fi
+
 GIT_EXECUTABLE_DIR="$GIT_INSTALL_DIR/bin"
 
 >$OUTPUT_FILE
