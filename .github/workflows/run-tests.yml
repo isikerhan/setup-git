@@ -33,6 +33,7 @@ jobs:
       cache-key-prefix: ${{ github.run_id }}
   clear-cache:
     name: Clear cache
+    if: always()
     needs: [tests, cache-tests]
     runs-on: ubuntu-latest
     steps:
