@@ -41,10 +41,11 @@ jobs:
         shell: bash
         run: |
           set +e
-          cache_ids=$(gh cache list --key=${{ github.run_id }} --json id --jq '.[].id')
+          cache_ids=$(gh cache list --key="$CACHE_KEY_PREFIX" --json id --jq '.[].id')
           for cache_id in $cache_ids; do
             gh cache delete $cache_id
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          CACHE_KEY_PREFIX: ${{ github.run_id }}

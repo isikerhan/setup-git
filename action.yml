@@ -33,18 +33,23 @@ runs:
       id: setup
       shell: bash
       run: |
-        install_script_name="install-$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]').sh"
-        if [ ! -f "${{ github.action_path }}/$install_script_name" ]; then
-          echo "Unsupported runner OS: ${{ runner.os}}" >&2
+        install_script_name="install-$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]').sh"
+        if [ ! -f "$GITHUB_ACTION_PATH/$install_script_name" ]; then
+          echo "Unsupported runner OS: $RUNNER_OS" >&2
           exit 1
         fi
         echo "install-script-name=$install_script_name" >> $GITHUB_OUTPUT
-        echo "install-dir=$HOME/local/git/${{ inputs.version }}" >> $GITHUB_OUTPUT
+        echo "install-dir=$HOME/local/git/$GIT_VERSION" >> $GITHUB_OUTPUT
+      env:
+        GIT_VERSION: ${{ inputs.version }}
     - name: "Setup cache"
       id: setup-cache
       shell: bash
       if: inputs.cache == 'true'
-      run: echo "cache-key=${{ inputs.installation-id && format('{0}-', inputs.installation-id) }}${{ runner.os }}-git-v${{ inputs.version }}" >> $GITHUB_OUTPUT
+      run: echo "cache-key=${CACHE_KEY_PREFIX:+$CACHE_KEY_PREFIX-}$RUNNER_OS-git-v$GIT_VERSION" >> $GITHUB_OUTPUT
+      env:
+        CACHE_KEY_PREFIX: ${{ inputs.installation-id }}
+        GIT_VERSION: ${{ inputs.version }}
     - name: "Cache executables"
       id: cache-executables
       if: inputs.cache == 'true'
@@ -56,7 +61,7 @@ runs:
       id: install-git
       shell: bash
       run: |
-        ${{ github.action_path }}/${{ steps.setup.outputs.install-script-name }}
+        "$GITHUB_ACTION_PATH/$INSTALL_SCRIPT_NAME"
         echo "$GIT_INSTALL_DIR/bin" >> $GITHUB_PATH
         cat $OUTPUT_FILE 2>/dev/null >> $GITHUB_OUTPUT
       working-directory: ${{ runner.temp }}
@@ -65,3 +70,4 @@ runs:
         GIT_INSTALL_DIR: ${{ steps.setup.outputs.install-dir }}
         VERBOSE: ${{ inputs.verbose }}
         OUTPUT_FILE: ./.out
+        INSTALL_SCRIPT_NAME: ${{ steps.setup.outputs.install-script-name }}

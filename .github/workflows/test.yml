@@ -34,12 +34,18 @@ jobs:
         run: |
           command -v git >/dev/null \
             || (echo "Assertion failed: Expected Git to be installed, but it wasn't" >&2; exit 1)
-          [ "$(git --version)" == "git version ${{ matrix.git-version }}" ] \
-            || (echo "Assertion failed: Expected version = 'git version ${{ matrix.git-version }}', but got '$(git --version)'." >&2; exit 1)
+          [ "$(git --version)" == "git version $GIT_VERSION" ] \
+            || (echo "Assertion failed: Expected version = 'git version $GIT_VERSION', but got '$(git --version)'." >&2; exit 1)
+        env:
+          GIT_VERSION: ${{ matrix.git-version }}
       - name: Assert cache hit status
         if: inputs.asserted-cache-hit-status != ''
         run: |
-          [ "${{ steps.setup-git.outputs.cache-hit }}" == "${{ inputs.asserted-cache-hit-status }}" ] \
-            || (echo "Assertion failed: Expected cache-hit = '${{ inputs.asserted-cache-hit-status }}', but got '${{ steps.setup-git.outputs.cache-hit }}'." >&2; exit 1)
-          [ "${{ steps.setup-git.outputs.installation-skipped }}" == "${{ inputs.asserted-cache-hit-status }}" ] \
-            || (echo "Assertion failed: Expected installation-skipped = '${{ inputs.asserted-cache-hit-status }}', but got '${{ steps.setup-git.outputs.installation-skipped }}'." >&2; exit 1)
+          [ "$CACHE_HIT" == "$ASSERTED_CACHE_HIT" ] \
+            || (echo "Assertion failed: Expected cache-hit = '$ASSERTED_CACHE_HIT', but got '$CACHE_HIT'." >&2; exit 1)
+          [ "$INSTALLATION_SKIPPED" == "$ASSERTED_CACHE_HIT" ] \
+            || (echo "Assertion failed: Expected installation-skipped = '$ASSERTED_CACHE_HIT', but got '$INSTALLATION_SKIPPED'." >&2; exit 1)
+        env:
+          ASSERTED_CACHE_HIT: ${{ inputs.asserted-cache-hit-status }}
+          CACHE_HIT: ${{ steps.setup-git.outputs.cache-hit }}
+          INSTALLATION_SKIPPED: ${{ steps.setup-git.outputs.installation-skipped }}
