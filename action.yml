@@ -39,7 +39,11 @@ runs:
           exit 1
         fi
         echo "install-script-name=$install_script_name" >> $GITHUB_OUTPUT
-        echo "install-dir=$HOME/local/git/$GIT_VERSION" >> $GITHUB_OUTPUT
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          echo "install-dir=$HOME/local/git/${{ inputs.version }}" | tr '/' '\\' >> $GITHUB_OUTPUT
+        else
+          echo "install-dir=$HOME/local/git/${{ inputs.version }}" >> $GITHUB_OUTPUT
+        fi
       env:
         GIT_VERSION: ${{ inputs.version }}
     - name: "Setup cache"
@@ -71,3 +75,4 @@ runs:
         VERBOSE: ${{ inputs.verbose }}
         OUTPUT_FILE: ./.out
         INSTALL_SCRIPT_NAME: ${{ steps.setup.outputs.install-script-name }}
+        GH_TOKEN: ${{ github.token }}
