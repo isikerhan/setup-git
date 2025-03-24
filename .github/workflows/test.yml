@@ -31,6 +31,7 @@ jobs:
           verbose: true
           installation-id: ${{ inputs.cache-key-prefix && format('{0}-', inputs.cache-key-prefix) }}${{ matrix.runs-on }}
       - name: Assert correct Git version is installed
+        shell: bash
         run: |
           command -v git >/dev/null \
             || (echo "Assertion failed: Expected Git to be installed, but it wasn't" >&2; exit 1)
@@ -39,6 +40,7 @@ jobs:
         env:
           GIT_VERSION: ${{ matrix.git-version }}
       - name: Assert cache hit status
+        shell: bash
         if: inputs.asserted-cache-hit-status != ''
         run: |
           [ "$CACHE_HIT" == "$ASSERTED_CACHE_HIT" ] \
