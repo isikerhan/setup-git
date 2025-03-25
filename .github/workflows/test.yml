@@ -43,13 +43,70 @@ jobs:
           version: ${{ matrix.git-version }}
           verbose: true
           installation-id: ${{ inputs.cache-key-prefix && format('{0}-', inputs.cache-key-prefix) }}${{ matrix.runs-on }}
-      - name: Assert correct Git version is installed
+      - name: Assert correct Git version is available in bash
         shell: bash
         run: |
           command -v git >/dev/null \
             || (echo "Assertion failed: Expected Git to be installed, but it wasn't" >&2; exit 1)
           [ "$(git --version)" == "git version $GIT_VERSION" ] \
             || (echo "Assertion failed: Expected version = 'git version $GIT_VERSION', but got '$(git --version)'." >&2; exit 1)
+        env:
+          GIT_VERSION: ${{ matrix.git-version }}
+      - name: Assert correct Git version is available in shell
+        shell: sh
+        run: |
+          command -v git > /dev/null 2>&1 || {
+            echo "Assertion failed: Expected Git to be installed, but it wasn't" >&2
+            exit 1
+          }
+          if [ "$(git --version)" != "git version $GIT_VERSION" ]; then
+            echo "Assertion failed: Expected version = 'git version $GIT_VERSION', but got '$(git --version)'." >&2
+            exit 1
+          fi
+        env:
+          GIT_VERSION: ${{ matrix.git-version }}
+      - name: Assert correct Git version is available in PowerShell (pwsh)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+              Write-Error "Assertion failed: Expected Git to be installed, but it wasn't"
+              exit 1
+          }
+          if ((git --version) -ne "git version $env:GIT_VERSION") {
+              Write-Error "Assertion failed: Expected version = 'git version $env:GIT_VERSION', but got '$(git --version)'."
+              exit 1
+          }
+        env:
+          GIT_VERSION: ${{ matrix.git-version }}
+      - name: Assert correct Git version is available in Windows PowerShell
+        shell: powershell
+        if: runner.os == 'Windows'
+        run: |
+          if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+              Write-Error "Assertion failed: Expected Git to be installed, but it wasn't"
+              exit 1
+          }
+          if ((git --version) -ne "git version $env:GIT_VERSION") {
+              Write-Error "Assertion failed: Expected version = 'git version $env:GIT_VERSION', but got '$(git --version)'."
+              exit 1
+          }
+        env:
+          GIT_VERSION: ${{ matrix.git-version }}
+      - name: Assert correct Git version is available cmd
+        shell: cmd
+        if: runner.os == 'Windows'
+        run: |
+          where git >nul 2>nul
+          if errorlevel 1 (
+              echo Assertion failed: Expected Git to be installed, but it wasn't
+              exit /b 1
+          )
+          for /f "delims=" %%i in ('git --version') do (
+              if not "%%i"=="git version %GIT_VERSION%" (
+                  echo Assertion failed: Expected version = 'git version %GIT_VERSION%', but got '%%i'.
+                  exit /b 1
+              )
+          )
         env:
           GIT_VERSION: ${{ matrix.git-version }}
       - name: Assert cache hit status
