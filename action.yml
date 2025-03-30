@@ -50,7 +50,7 @@ runs:
       id: setup-cache
       shell: bash
       if: inputs.cache == 'true'
-      run: echo "cache-key=${CACHE_KEY_PREFIX:+$CACHE_KEY_PREFIX-}$RUNNER_OS-git-v$GIT_VERSION" >> $GITHUB_OUTPUT
+      run: echo "cache-key=${CACHE_KEY_PREFIX:+$CACHE_KEY_PREFIX-}$RUNNER_OS-$(uname -m)-git-v$GIT_VERSION" >> $GITHUB_OUTPUT
       env:
         CACHE_KEY_PREFIX: ${{ inputs.installation-id }}
         GIT_VERSION: ${{ inputs.git-version }}
