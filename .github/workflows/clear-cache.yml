@@ -1,0 +1,25 @@
+on:
+  workflow_call:
+    inputs:
+      cache-key-prefix:
+        description: "Cache key prefix to search for the cache(s) to clear"
+        type: string
+
+jobs:
+  clear-cache:
+    name: Clear cache
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear cache
+        id: clear-cache
+        shell: bash
+        run: |
+          set +e
+          cache_ids=$(gh cache list --key="$CACHE_KEY_PREFIX" --json id --jq '.[].id')
+          for cache_id in $cache_ids; do
+            gh cache delete $cache_id
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          CACHE_KEY_PREFIX: ${{ inputs.cache-key-prefix }}

@@ -3,35 +3,26 @@ name: Test "Setup Git"
 on:
   workflow_call:
     inputs:
+      name: 
+        description: "Test name"
+        type: string
       asserted-cache-hit-status:
         description: "Determines which cache hit status will be asserted. ('true' for cache hit, 'false' for cache miss, or empty for no assertion)."
         type: string
       cache-key-prefix:
         description: "Prefix for cache key"
         type: string
+      runs-on:
+        description: "Runner type"
+        type: string
+      git-version: 
+        description: "Git version to use"
+        type: string
 
 jobs:
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        runs-on: [ubuntu-24.04, ubuntu-22.04, ubuntu-20.04, macos-15, macos-14, macos-13]
-        git-version: ["2.23.0", "2.43.6"]
-        include:
-          - runs-on: windows-2025
-            git-version: 2.23.0.windows.1
-          - runs-on: windows-2025
-            git-version: 2.44.0.windows.1
-          - runs-on: windows-2022
-            git-version: 2.23.0.windows.1
-          - runs-on: windows-2022
-            git-version: 2.44.0.windows.1
-          - runs-on: windows-2019
-            git-version: 2.23.0.windows.1
-          - runs-on: windows-2019
-            git-version: 2.44.0.windows.1
-    name: "Run tests on ${{ matrix.runs-on }} with Git v${{ matrix.git-version }}"
-    runs-on: ${{ matrix.runs-on }}
+    name: ${{ inputs.name || 'Test' }}
+    runs-on: ${{ inputs.runs-on }}
     steps:
       - name: Checkout
         id: checkout
@@ -40,9 +31,9 @@ jobs:
         id: setup-git
         uses: ./
         with:
-          version: ${{ matrix.git-version }}
+          version: ${{ inputs.git-version }}
           verbose: true
-          installation-id: ${{ inputs.cache-key-prefix && format('{0}-', inputs.cache-key-prefix) }}${{ matrix.runs-on }}
+          installation-id: ${{ inputs.cache-key-prefix && format('{0}-', inputs.cache-key-prefix) }}${{ inputs.runs-on }}
       - name: Assert correct Git version is available in bash
         shell: bash
         run: |
@@ -51,7 +42,7 @@ jobs:
           [ "$(git --version)" == "git version $GIT_VERSION" ] \
             || (echo "Assertion failed: Expected version = 'git version $GIT_VERSION', but got '$(git --version)'." >&2; exit 1)
         env:
-          GIT_VERSION: ${{ matrix.git-version }}
+          GIT_VERSION: ${{ inputs.git-version }}
       - name: Assert correct Git version is available in shell
         shell: sh
         run: |
@@ -64,7 +55,7 @@ jobs:
             exit 1
           fi
         env:
-          GIT_VERSION: ${{ matrix.git-version }}
+          GIT_VERSION: ${{ inputs.git-version }}
       - name: Assert correct Git version is available in PowerShell (pwsh)
         shell: pwsh
         run: |
@@ -77,7 +68,7 @@ jobs:
               exit 1
           }
         env:
-          GIT_VERSION: ${{ matrix.git-version }}
+          GIT_VERSION: ${{ inputs.git-version }}
       - name: Assert correct Git version is available in Windows PowerShell
         shell: powershell
         if: runner.os == 'Windows'
@@ -91,7 +82,7 @@ jobs:
               exit 1
           }
         env:
-          GIT_VERSION: ${{ matrix.git-version }}
+          GIT_VERSION: ${{ inputs.git-version }}
       - name: Assert correct Git version is available cmd
         shell: cmd
         if: runner.os == 'Windows'
@@ -108,7 +99,7 @@ jobs:
               )
           )
         env:
-          GIT_VERSION: ${{ matrix.git-version }}
+          GIT_VERSION: ${{ inputs.git-version }}
       - name: Assert cache hit status
         shell: bash
         if: inputs.asserted-cache-hit-status != ''

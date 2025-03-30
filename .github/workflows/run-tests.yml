@@ -1,52 +1,35 @@
 name: Run tests
 
 on:
-  workflow_dispatch:
-  push:
-    branches: 
-      - main
-    tags:
-      - v*
-    paths-ignore:
-      - README.md
-      - LICENSE
-  pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - README.md
-      - LICENSE
+  workflow_call:
+    inputs:
+      runs-on:
+        description: "Runner type"
+        type: string
+      git-version: 
+        description: "Git version to use"
+        type: string
+      cache-key-prefix:
+        description: "Prefix for cache key"
+        type: string
 
 jobs:
-  tests:
-    name: Tests
+  test:
+    name: Run tests
     uses: ./.github/workflows/test.yml
     with:
+      name: Test
       asserted-cache-hit-status: false
-      cache-key-prefix: ${{ github.run_id }}
-  cache-tests:
-    name: Cache tests
-    needs: tests
+      cache-key-prefix: ${{ inputs.cache-key-prefix }}
+      runs-on: ${{ inputs.runs-on }}
+      git-version: ${{ inputs.git-version }}
+  cache-test:
+    name: Run cache tests
+    needs: test
     uses: ./.github/workflows/test.yml
     with:
+      name: Cache test
       asserted-cache-hit-status: true
-      cache-key-prefix: ${{ github.run_id }}
-  clear-cache:
-    name: Clear cache
-    if: always()
-    needs: [tests, cache-tests]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clear cache
-        id: clear-cache
-        shell: bash
-        run: |
-          set +e
-          cache_ids=$(gh cache list --key="$CACHE_KEY_PREFIX" --json id --jq '.[].id')
-          for cache_id in $cache_ids; do
-            gh cache delete $cache_id
-          done
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          CACHE_KEY_PREFIX: ${{ github.run_id }}
+      cache-key-prefix: ${{ inputs.cache-key-prefix }}
+      runs-on: ${{ inputs.runs-on }}
+      git-version: ${{ inputs.git-version }}
