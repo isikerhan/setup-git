@@ -1,5 +1,8 @@
 # setup-git
 
+[![Run core tests](https://github.com/isikerhan/setup-git/actions/workflows/run-core-tests.yml/badge.svg)](https://github.com/isikerhan/setup-git/actions/workflows/run-core-tests.yml)
+[![Run extended tests](https://github.com/isikerhan/setup-git/actions/workflows/run-extended-tests.yml/badge.svg)](https://github.com/isikerhan/setup-git/actions/workflows/run-extended-tests.yml)
+
 This action installs a specific version of Git by compiling the source code (or downloading the prebuilt version for Windows) and adds it to the `PATH`.
 
 > [!WARNING]
