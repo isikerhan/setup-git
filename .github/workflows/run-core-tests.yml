@@ -10,7 +10,7 @@ on:
       - LICENSE
 
 jobs:
-  basic-tests:
+  run-tests:
     name: "Run tests on ${{ matrix.runs-on }} with Git v${{ matrix.git-version }}"
     strategy:
       fail-fast: false
@@ -27,7 +27,7 @@ jobs:
       cache-key-prefix: ${{ github.run_id }}
   clear-cache:
     name: "Clear cache"
-    needs: basic-tests
+    needs: run-tests
     if: always()
     uses: ./.github/workflows/clear-cache.yml
     with:
