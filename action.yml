@@ -1,6 +1,9 @@
 name: "Setup Git"
 description: "Setup a specific version of Git by downloading the source code and installing it from the source."
 author: "Isik Erhan"
+branding:
+  icon: git-merge
+  color: red
 inputs:
   git-version:
     description: "The Git version to install. Example: 2.22.0."
