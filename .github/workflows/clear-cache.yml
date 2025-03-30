@@ -1,3 +1,5 @@
+name: Clear cache 
+description: Delete all caches with a specific prefix
 on:
   workflow_call:
     inputs:

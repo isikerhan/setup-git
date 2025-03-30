@@ -1,5 +1,5 @@
 name: Run tests
-
+description: Run tests on the specified runner and Git version
 on:
   workflow_call:
     inputs:
