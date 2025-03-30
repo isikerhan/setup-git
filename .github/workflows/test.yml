@@ -31,7 +31,7 @@ jobs:
         id: setup-git
         uses: ./
         with:
-          version: ${{ inputs.git-version }}
+          git-version: ${{ inputs.git-version }}
           verbose: true
           installation-id: ${{ inputs.cache-key-prefix && format('{0}-', inputs.cache-key-prefix) }}${{ inputs.runs-on }}
       - name: Assert correct Git version is available in bash

@@ -2,7 +2,7 @@ name: "Setup Git"
 description: "Setup a specific version of Git by downloading the source code and installing it from the source."
 author: "Isik Erhan"
 inputs:
-  version:
+  git-version:
     description: "The Git version to install. Example: 2.22.0."
     required: true
   cache:
@@ -40,12 +40,12 @@ runs:
         fi
         echo "install-script-name=$install_script_name" >> $GITHUB_OUTPUT
         if [ "$RUNNER_OS" == "Windows" ]; then
-          echo "install-dir=$HOME/local/git/${{ inputs.version }}" | tr '/' '\\' >> $GITHUB_OUTPUT
+          echo "install-dir=$HOME/local/git/${{ inputs.git-version }}" | tr '/' '\\' >> $GITHUB_OUTPUT
         else
-          echo "install-dir=$HOME/local/git/${{ inputs.version }}" >> $GITHUB_OUTPUT
+          echo "install-dir=$HOME/local/git/${{ inputs.git-version }}" >> $GITHUB_OUTPUT
         fi
       env:
-        GIT_VERSION: ${{ inputs.version }}
+        GIT_VERSION: ${{ inputs.git-version }}
     - name: "Setup cache"
       id: setup-cache
       shell: bash
@@ -53,7 +53,7 @@ runs:
       run: echo "cache-key=${CACHE_KEY_PREFIX:+$CACHE_KEY_PREFIX-}$RUNNER_OS-git-v$GIT_VERSION" >> $GITHUB_OUTPUT
       env:
         CACHE_KEY_PREFIX: ${{ inputs.installation-id }}
-        GIT_VERSION: ${{ inputs.version }}
+        GIT_VERSION: ${{ inputs.git-version }}
     - name: "Cache executables"
       id: cache-executables
       if: inputs.cache == 'true'
@@ -70,7 +70,7 @@ runs:
         cat $OUTPUT_FILE 2>/dev/null >> $GITHUB_OUTPUT
       working-directory: ${{ runner.temp }}
       env:
-        GIT_VERSION: ${{ inputs.version }}
+        GIT_VERSION: ${{ inputs.git-version }}
         GIT_INSTALL_DIR: ${{ steps.setup.outputs.install-dir }}
         VERBOSE: ${{ inputs.verbose }}
         OUTPUT_FILE: ./.out
